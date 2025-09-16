@@ -175,7 +175,7 @@ class _SupportPageState extends State<SupportPage> {
                     color: Colors.green[600]!,
                     onTap: () async {
                       final Uri whatsappUri = Uri.parse(
-                        'https://wa.me/966501234567?text=مرحباً، أحتاج مساعدة في تطبيق متجر الورود',
+                        'https://wa.me/778447779?text=مرحباً، أحتاج مساعدة في تطبيق متجر الورود',
                       );
                       if (await canLaunchUrl(whatsappUri)) {
                         await launchUrl(whatsappUri);

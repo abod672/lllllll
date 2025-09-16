@@ -66,7 +66,7 @@ class HomeAppBar extends StatelessWidget {
           // Notifications
           IconButton(
             onPressed: () {
-              // TODO: Navigate to notifications
+              Navigator.pushNamed(context, AppConfig.notificationsRoute);
             },
             icon: Stack(
               children: [

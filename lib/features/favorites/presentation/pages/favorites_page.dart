@@ -124,11 +124,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppConfig.homeRoute,
-                        (route) => false,
-                      );
+                      final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                      navigationProvider.setIndex(0);
                     },
                     child: const Text('تصفح المنتجات'),
                   ),

@@ -10,7 +10,21 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    
+    // Check if user is authenticated
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+        
+        return _buildBottomNavBar(context, theme);
+      },
+    );
+  }
 
+  Widget _buildBottomNavBar(BuildContext context, ThemeData theme) {
     return Consumer<NavigationProvider>(
       builder: (context, navigationProvider, child) {
         return Container(

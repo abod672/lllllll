@@ -104,6 +104,11 @@ class RecentOrdersList extends StatelessWidget {
                     value: OrderStatus.confirmed,
                     child: Text('تأكيد الطلب'),
                   ),
+                if (order.status == OrderStatus.pending)
+                  const PopupMenuItem(
+                    value: OrderStatus.cancelled,
+                    child: Text('رفض الطلب'),
+                  ),
                 if (order.status == OrderStatus.confirmed)
                   const PopupMenuItem(
                     value: OrderStatus.preparing,

@@ -173,7 +173,7 @@ class _CartPageState extends State<CartPage> {
                 shipping: cartProvider.shipping,
                 total: cartProvider.total,
                 onCheckout: () {
-                  Navigator.pushNamed(context, '/checkout');
+                  Navigator.pushNamed(context, AppConfig.checkoutRoute);
                 },
               ),
             ],

@@ -96,9 +96,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    await productsProvider.loadProducts();
+    // Load products without triggering setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await productsProvider.loadProducts();
+    });
+    
     if (authProvider.isAuthenticated) {
-      await cartProvider.loadCart(authProvider.currentUser!.id);
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await cartProvider.loadCart(authProvider.currentUser!.id);
+      });
     }
   }
 
@@ -137,7 +143,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           onSearch: (query) {
                             Navigator.pushNamed(
                               context,
-                              '/products',
+                              AppConfig.productsListRoute,
                               arguments: {'search': query},
                             );
                           },
@@ -240,7 +246,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     onTap: () {
                                       Navigator.pushNamed(
                                         context,
-                                        '/products',
+                                        AppConfig.productsListRoute,
                                         arguments: {'category': category['name']},
                                       );
                                     },
@@ -268,7 +274,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             ),
                             TextButton(
                               onPressed: () {
-                                Navigator.pushNamed(context, '/products');
+                                Navigator.pushNamed(context, AppConfig.productsListRoute);
                               },
                               child: Text(
                                 'عرض الكل',
@@ -375,7 +381,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           
           return FloatingActionButton.extended(
             onPressed: () {
-              Navigator.pushNamed(context, AppConfig.cartRoute);
+              final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+              navigationProvider.setIndex(1);
             },
             backgroundColor: AppTheme.primaryPink,
             icon: const Icon(Icons.shopping_cart, color: Colors.white),

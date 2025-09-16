@@ -11,25 +11,3 @@ import '../../../profile/presentation/pages/profile_page.dart';
 
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<NavigationProvider>(
-      builder: (context, navigationProvider, child) {
-        return Scaffold(
-          body: IndexedStack(
-            index: navigationProvider.currentIndex,
-            children: const [
-              HomePage(),
-              CartPage(),
-              OffersPage(),
-              SearchPage(),
-              ProfilePage(),
-            ],
-          ),
-          bottomNavigationBar: const CustomBottomNavigationBar(),
-        );
-      },
-    );
-  }
-}

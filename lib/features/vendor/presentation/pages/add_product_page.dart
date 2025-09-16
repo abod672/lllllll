@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -22,7 +25,9 @@ class _AddProductPageState extends State<AddProductPage> {
 
   String _selectedCategory = 'باقات الحب';
   bool _isFeatured = false;
-  List<String> _images = [];
+  List<String> _imageUrls = [];
+  List<File> _imageFiles = [];
+  final ImagePicker _picker = ImagePicker();
   List<String> _sizes = [];
   List<String> _colors = [];
   List<String> _tags = [];
@@ -64,6 +69,11 @@ class _AddProductPageState extends State<AddProductPage> {
   Future<void> _addProduct() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Upload images first
+    if (_imageFiles.isNotEmpty) {
+      await _uploadImages();
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final vendorProvider = Provider.of<VendorProvider>(context, listen: false);
 
@@ -72,8 +82,8 @@ class _AddProductPageState extends State<AddProductPage> {
     }
 
     // Add default image if no images provided
-    if (_images.isEmpty) {
-      _images.add('https://images.pexels.com/photos/1070850/pexels-photo-1070850.jpeg');
+    if (_imageUrls.isEmpty) {
+      _imageUrls.add('https://images.pexels.com/photos/1070850/pexels-photo-1070850.jpeg');
     }
 
     final success = await vendorProvider.addProduct(
@@ -82,7 +92,7 @@ class _AddProductPageState extends State<AddProductPage> {
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
       price: double.parse(_priceController.text),
-      images: _images,
+      images: _imageUrls,
       category: _selectedCategory,
       stock: int.parse(_stockController.text),
       sizes: _sizes,
@@ -101,6 +111,41 @@ class _AddProductPageState extends State<AddProductPage> {
           content: const Text('تم إضافة المنتج بنجاح'),
           backgroundColor: AppTheme.primaryPink,
         ),
+      );
+    }
+  }
+
+  Future<void> _uploadImages() async {
+    try {
+      for (int i = 0; i < _imageFiles.length; i++) {
+        final file = _imageFiles[i];
+        final fileName = 'products/${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+        final ref = FirebaseStorage.instance.ref().child(fileName);
+        
+        final uploadTask = ref.putFile(file);
+        final snapshot = await uploadTask;
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+        
+        _imageUrls.add(downloadUrl);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('فشل رفع الصور')),
+      );
+    }
+  }
+
+  Future<void> _pickImages() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        setState(() {
+          _imageFiles.addAll(images.map((xfile) => File(xfile.path)));
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('فشل اختيار الصور')),
       );
     }
   }
@@ -150,7 +195,7 @@ class _AddProductPageState extends State<AddProductPage> {
                   border: Border.all(color: Colors.grey.withOpacity(0.3)),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: _images.isEmpty
+                child: _imageFiles.isEmpty && _imageUrls.isEmpty
                     ? Center(
                         child: SingleChildScrollView(
                           child: Column(
@@ -168,13 +213,8 @@ class _AddProductPageState extends State<AddProductPage> {
                               ),
                               const SizedBox(height: 4),
                               TextButton(
-                                onPressed: () {
-                                  // Add default image for demo
-                                  setState(() {
-                                    _images.add('https://images.pexels.com/photos/1070850/pexels-photo-1070850.jpeg');
-                                  });
-                                },
-                                child: const Text('إضافة صورة تجريبية'),
+                                onPressed: _pickImages,
+                                child: const Text('اختيار من المعرض'),
                               ),
                             ],
                           ),
@@ -182,9 +222,10 @@ class _AddProductPageState extends State<AddProductPage> {
                       )
                     : ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: _images.length + 1,
+                        itemCount: _imageFiles.length + _imageUrls.length + 1,
                         itemBuilder: (context, index) {
-                          if (index == _images.length) {
+                          final totalImages = _imageFiles.length + _imageUrls.length;
+                          if (index == totalImages) {
                             return Container(
                               width: 100,
                               margin: const EdgeInsets.all(8),
@@ -193,12 +234,7 @@ class _AddProductPageState extends State<AddProductPage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: IconButton(
-                                onPressed: () {
-                                  // Add more images
-                                  setState(() {
-                                    _images.add('https://images.pexels.com/photos/1022385/pexels-photo-1022385.jpeg');
-                                  });
-                                },
+                                onPressed: _pickImages,
                                 icon: const Icon(Icons.add),
                               ),
                             );
@@ -213,12 +249,19 @@ class _AddProductPageState extends State<AddProductPage> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    _images[index],
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
+                                  child: index < _imageFiles.length
+                                      ? Image.file(
+                                          _imageFiles[index],
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.network(
+                                          _imageUrls[index - _imageFiles.length],
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
                                 Positioned(
                                   top: 4,
@@ -226,7 +269,11 @@ class _AddProductPageState extends State<AddProductPage> {
                                   child: GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        _images.removeAt(index);
+                                        if (index < _imageFiles.length) {
+                                          _imageFiles.removeAt(index);
+                                        } else {
+                                          _imageUrls.removeAt(index - _imageFiles.length);
+                                        }
                                       });
                                     },
                                     child: Container(

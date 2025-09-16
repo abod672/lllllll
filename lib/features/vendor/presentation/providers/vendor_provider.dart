@@ -57,16 +57,34 @@ class VendorProvider extends ChangeNotifier {
   }
 
   Future<void> _loadVendorOrders(String vendorId) async {
-    // Get orders that contain products from this vendor
-    final querySnapshot = await FirebaseService.ordersCollection
+    // Get all orders first
+    final allOrdersSnapshot = await FirebaseService.ordersCollection
         .orderBy('createdAt', descending: true)
         .get();
 
-    _vendorOrders = querySnapshot.docs
+    final allOrders = allOrdersSnapshot.docs
         .map((doc) => OrderModel.fromFirestore(doc))
-        .where((order) => order.items.any((item) => 
-            _vendorProducts.any((product) => product.id == item.productId)))
         .toList();
+
+    // Filter orders that contain products from this vendor
+    _vendorOrders = [];
+    for (final order in allOrders) {
+      bool hasVendorProduct = false;
+      for (final item in order.items) {
+        // Check if any product in this order belongs to this vendor
+        final productDoc = await FirebaseService.productsCollection.doc(item.productId).get();
+        if (productDoc.exists) {
+          final productData = productDoc.data() as Map<String, dynamic>;
+          if (productData['vendorId'] == vendorId) {
+            hasVendorProduct = true;
+            break;
+          }
+        }
+      }
+      if (hasVendorProduct) {
+        _vendorOrders.add(order);
+      }
+    }
   }
 
   void _calculateAnalytics() {

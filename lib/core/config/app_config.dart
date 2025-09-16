@@ -91,6 +91,13 @@ class AppConfig {
           category: args?['category'],
           isFeatured: args?['isFeatured'] ?? false,
         ));
+      case '/products':
+        final args = settings.arguments as Map<String, dynamic>?;
+        return _createRoute(ProductsListPage(
+          title: args?['title'] ?? 'المنتجات',
+          category: args?['category'],
+          isFeatured: args?['isFeatured'] ?? false,
+        ));
       case cartRoute:
         return _createRoute(const CartPage());
       case checkoutRoute:

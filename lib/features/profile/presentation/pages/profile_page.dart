@@ -127,7 +127,7 @@ class ProfilePage extends StatelessWidget {
                         icon: Icons.notifications_outlined,
                         title: l10n.notifications,
                         onTap: () {
-                          Navigator.pushNamed(context, '/notification-settings');
+                          Navigator.pushNamed(context, AppConfig.notificationsRoute);
                         },
                       ),
                       Consumer<LocaleProvider>(

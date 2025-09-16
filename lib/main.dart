@@ -70,7 +70,17 @@ class RosesStoreApp extends StatelessWidget {
             
             // Routes
             home: const SplashPage(),
-            onGenerateRoute: AppConfig.generateRoute,
+            onGenerateRoute: (settings) {
+              // Handle both old and new route formats
+              if (settings.name == '/products') {
+                final args = settings.arguments as Map<String, dynamic>?;
+                return AppConfig.generateRoute(RouteSettings(
+                  name: AppConfig.productsListRoute,
+                  arguments: args,
+                ));
+              }
+              return AppConfig.generateRoute(settings);
+            },
           );
         },
       ),
