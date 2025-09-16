@@ -358,6 +358,11 @@ class _ProductOptionsSheetState extends State<ProductOptionsSheet> {
                               ? _selectedGreetingCard 
                               : null,
                         });
+                        
+                        // Update navigation cart count
+                        final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+                        navigationProvider.updateCartItemCount(cartProvider.itemCount);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryPink,

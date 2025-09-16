@@ -220,6 +220,10 @@ class ProductCard extends StatelessWidget {
                                   quantity: 1,
                                 );
                                 
+                                // Update navigation cart count
+                                final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                                navigationProvider.updateCartItemCount(cartProvider.itemCount);
+                                
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('تم إضافة ${product.name} للسلة'),

@@ -95,16 +95,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final productsProvider = Provider.of<ProductsProvider>(context, listen: false);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
 
-    // Load products without triggering setState during build
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await productsProvider.loadProducts();
-    });
-    
+    await productsProvider.loadProducts();
     if (authProvider.isAuthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await cartProvider.loadCart(authProvider.currentUser!.id);
-      });
+      await cartProvider.loadCart(authProvider.currentUser!.id);
+      navigationProvider.updateCartItemCount(cartProvider.itemCount);
     }
   }
 
@@ -381,8 +377,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           
           return FloatingActionButton.extended(
             onPressed: () {
-              final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
-              navigationProvider.setIndex(1);
+              Navigator.pushNamed(context, AppConfig.cartRoute);
             },
             backgroundColor: AppTheme.primaryPink,
             icon: const Icon(Icons.shopping_cart, color: Colors.white),
